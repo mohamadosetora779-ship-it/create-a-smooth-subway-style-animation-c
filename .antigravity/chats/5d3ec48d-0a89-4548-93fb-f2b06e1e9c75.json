@@ -4,5 +4,18 @@
   "createdAt": "2026-11-12T22:10:23.314Z",
   "filename": "5d3ec48d-0a89-4548-93fb-f2b06e1e9c75.json",
   "geminiStarted": false,
-  "messages": []
+  "messages": [
+    {
+      "id": "a8c50c04-c308-47fd-85d8-1fd9f6d03001",
+      "role": "user",
+      "content": "هل يمكنك انشاء فديو",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-12T22:10:57.128Z",
+      "sender": "ios",
+      "is_cancelled": false
+    }
+  ]
 }
