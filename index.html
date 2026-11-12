@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>استوديو رسوم مترو الأنفاق ومولد الفيديو | Subway Animation & Video Creator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00f2fe;
+      --primary-glow: rgba(0, 242, 254, 0.4);
+      --secondary: #4facfe;
+      --accent: #ff007f;
+      --accent-glow: rgba(255, 0, 127, 0.4);
+      --bg-dark: #0a0c16;
+      --panel-bg: rgba(16, 20, 38, 0.75);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text-main: #f0f4fc;
+      --text-muted: #8e9bb5;
+      --record-red: #ff3366;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(10, 12, 22, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--primary-glow);
+      font-size: 20px;
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(90deg, #ffffff, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-record {
+      background: linear-gradient(135deg, #ff1a53, #d90038);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(255, 26, 83, 0.4);
+    }
+
+    .btn-record:hover {
+      box-shadow: 0 0 25px rgba(255, 26, 83, 0.7);
+      transform: translateY(-1px);
+    }
+
+    .btn-record.recording {
+      background: #222;
+      border-color: var(--record-red);
+      color: #ff3366;
+      animation: pulseRecord 1s infinite alternate;
+    }
+
+    @keyframes pulseRecord {
+      0% { box-shadow: 0 0 5px rgba(255, 51, 102, 0.4); }
+      100% { box-shadow: 0 0 20px rgba(255, 51, 102, 0.9); }
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-color: var(--panel-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 16px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Stage Area */
+    .stage-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .canvas-container {
+      position: relative;
+      background: #05060b;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 254, 0.08);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    /* Ratio Modes */
+    .ratio-16-9 {
+      width: 100%;
+      max-width: 960px;
+      aspect-ratio: 16 / 9;
+    }
+
+    .ratio-9-16 {
+      width: 380px;
+      max-width: 100%;
+      aspect-ratio: 9 / 16;
+      height: min(75vh, 680px);
+    }
+
+    .ratio-1-1 {
+      width: 540px;
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* In-Canvas HUD overlay */
+    .canvas-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .hud-badge {
+      background: rgba(8, 10, 20, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 30px;
+      padding: 6px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-badge.rec-indicator {
+      display: none;
+      background: rgba(255, 26, 83, 0.2);
+      border-color: var(--record-red);
+      color: #ff4d79;
+    }
+
+    .rec-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--record-red);
+      border-radius: 50%;
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .hud-speedometer {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--primary);
+      text-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .hud-station {
+      background: rgba(10, 12, 22, 0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 8px 16px;
+      text-align: center;
+      align-self: center;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hud-station.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hud-station .station-title {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .hud-station .station-name {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    /* Onscreen touch controls for track switching */
+    .hud-touch-controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    .lane-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    .lane-btn:active {
+      transform: scale(0.9);
+      background: rgba(0, 242, 254, 0.4);
+    }
+
+    /* Control Panels */
+    .controls-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding-bottom: 8px;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+
+    .option-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip-btn {
+      flex: 1;
+      min-width: 75px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .chip-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .chip-btn.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.3));
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    /* Slider styling */
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider {
+      flex: 1;
+      accent-color: var(--primary);
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      outline: none;
+    }
+
+    /* Video Export Modal / Notice */
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .video-modal.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #111422;
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px var(--primary-glow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .modal-video-preview {
+      width: 100%;
+      max-height: 280px;
+      background: #000;
+      border-radius: 12px;
+      object-fit: contain;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Helper Banner */
+    .info-banner {
+      background: linear-gradient(90deg, rgba(0, 242, 254, 0.1), rgba(255, 0, 127, 0.1));
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 14px;
+      padding: 12px 18px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .info-text {
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .info-text strong {
+      color: var(--primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 14px;
+      }
+      .brand-text h1 {
+        font-size: 1rem;
+      }
+      .panel {
+        padding: 12px;
+      }
+      .ratio-9-16 {
+        height: min(70vh, 580px);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🚇</div>
+      <div class="brand-text">
+        <h1>رسوم مترو الأنفاق ومولد الفيديو</h1>
+        <p>Subway Animation & Video Studio</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="toggleAudioBtn" class="btn btn-secondary" title="تشغيل / كتم المؤثرات الصوتية">
+        🔊 <span class="btn-label">الصوت: مفعّل</span>
+      </button>
+      <button id="mainRecordBtn" class="btn btn-record" title="بدء تسجيل وتصدير فيديو">
+        ⏺️ <span id="recordBtnText">تسجيل فيديو (10 ثوانٍ)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Informative Welcome Banner -->
+    <div class="info-banner">
+      <div class="info-text">
+        ✨ <strong>جاهز لصناعة الفيديو!</strong> يمكنك مشاهدة حركة المترو السلسة، تغيير زاوية الكاميرا أو تبديل المسارات، والضغط على <strong>"تسجيل فيديو"</strong> لتحميل مقطع فيديو حقيقي بجودة عالية مباشرة لهاتفك أو حاسوبك!
+      </div>
+    </div>
+
+    <!-- Canvas Animation Stage -->
+    <div class="stage-wrapper">
+      <div id="canvasContainer" class="canvas-container ratio-16-9">
+        <canvas id="subwayCanvas"></canvas>
+
+        <!-- Canvas Heads Up Display Overlay -->
+        <div class="canvas-overlay">
+          <div class="hud-top">
+            <div class="hud-badge">
+              <span>🚇 SUBWAY EXP</span>
+              <span style="color: var(--text-muted);">|</span>
+              <span id="hudLane">مسار الوسط [وسط]</span>
+            </div>
+
+            <div id="hudRecIndicator" class="hud-badge rec-indicator">
+              <span class="rec-dot"></span>
+              <span>REC <span id="recCountdown">10s</span></span>
+            </div>
+
+            <div class="hud-badge hud-speedometer">
+              <span id="hudSpeed">145</span> KM/H
+            </div>
+          </div>
+
+          <!-- Station Arrival Notice -->
+          <div id="hudStation" class="hud-station">
+            <div class="station-title">المحطة القادمة • NEXT STOP</div>
+            <div id="stationName" class="station-name">محطة التحرير - سنترال</div>
+          </div>
+
+          <!-- Touch / Click Steering Arrows -->
+          <div class="hud-touch-controls">
+            <button id="laneLeftBtn" class="lane-btn" title="الانتقال لليسار">◀</button>
+            <button id="laneRightBtn" class="lane-btn" title="الانتقال لليمين">▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Control Panels -->
+    <div class="controls-grid">
+      <!-- 1. Video Recording Options -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🎬 إعدادات تصدير الفيديو</div>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">MediaRecorder HD</span>
+        </div>
+
+        <div class="option-group">
+          <label class="option-label">أبعاد الفيديو المخصص:</label>
+          <div class="btn-row">
+            <button class="chip-btn active" data-ratio="16-9">💻 16:9 شاشة كاملة</button>
+            <button class="chip-btn" data-ratio="9-16">📱 9:16 تيك توك / ريلز</button>
+            <button class="chip-btn" data-ratio="1-1">⬛ 1:1 مربع</button>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <label class="option-label">مدة مقطع الفيديو التلقائي:</label>
+          <div class="btn-row">
+            <button class="chip-btn" data-duration="5">5 ثوانٍ</button>
+            <button class="chip-btn active" data-duration="10">10 ثوانٍ (Reel)</button>
+            <button class="chip-btn" data-duration="15">15 ثانية</button>
+            <button class="chip-btn" data-duration="0">حر (يدوي)</button>
+          </div>
+        </div>
+
+        <button id="exportQuickVideoBtn" class="btn btn-record" style="width: 100%; justify-content: center; margin-top: 4px;">
+          ⚡ اضغط هنا لإنشاء وتحميل الفيديو الآن
+        </button>
+      </div>
+
+      <!-- 2. Camera & Perspectives -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🎥 زوايا الرؤية والكاميرا</div>
+        </div>
+
+        <div class="option-group">
+          <label class="option-label">منظور الكاميرا:</label>
+          <div class="btn-row">
+            <button class="chip-btn active" data-camera="chase">سينمائي خلفي (3D)</button>
+            <button class="chip-btn" data-camera="driver">مقصورة السائق</button>
+            <button class="chip-btn" data-camera="side">جانبي سريع</button>
+            <button class="chip-btn" data-camera="map">خريطة المترو</button>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <div class="option-label">
+            <span>سرعة حركة القطار:</span>
+            <span id="speedValueText" style="color: var(--primary);">145 كم/س</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="speedSlider" class="slider" min="50" max="320" value="145">
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Visual Themes & FX -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🎨 الثيم والمؤثرات البصرية</div>
+        </div>
+
+        <div class="option-group">
+          <label class="option-label">نمط وبيئة المترو:</label>
+          <div class="btn-row">
+            <button class="chip-btn active" data-theme="sunset">🌆 غروب ساحلي</button>
+            <button class="chip-btn" data-theme="cyberpunk">🌌 سايبربانك نيون</button>
+            <button class="chip-btn" data-theme="subway">🚇 نفق تقليدي</button>
+            <button class="chip-btn" data-theme="matrix">🟢 مصفوفة خضراء</button>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <label class="option-label">مؤثرات إضافية:</label>
+          <div class="btn-row">
+            <button id="toggleSparksBtn" class="chip-btn active">⚡ شرارات المسار</button>
+            <button id="toggleMotionBlurBtn" class="chip-btn active">💨 خطوط السرعة</button>
+            <button id="triggerStationBtn" class="chip-btn">🏢 إيقاف بمحطة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Video Export Ready Modal -->
+  <div id="videoModal" class="video-modal">
+    <div class="modal-box">
+      <div style="font-size: 2.2rem;">🎉</div>
+      <h2 style="font-size: 1.3rem; font-weight: 800; color: #fff;">تم تجهيز الفيديو بنجاح!</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        تم تسجيل حركة المترو ثلاثية الأبعاد بدقة وسلاسة عالية، يمكنك معاينته وحفظه الآن.
+      </p>
+
+      <video id="modalVideoPreview" class="modal-video-preview" controls autoplay loop playsinline></video>
+
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <a id="downloadVideoBtn" class="btn btn-record" style="flex: 2; text-decoration: none; justify-content: center;" download="subway-animation.webm">
+          📥 تحميل الفيديو (Download Video)
+        </a>
+        <button id="closeModalBtn" class="btn btn-secondary" style="flex: 1; justify-content: center;">
+          إغلاق
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Synthesizer and Animation Engine -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. Audio Synthesizer (Pure Web Audio - No external assets)
+    // -------------------------------------------------------------
+    class SubwayAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.engineOsc = null;
+        this.engineGain = null;
+        this.filter = null;
+        this.clackTimer = null;
+        this.audioDestinationNode = null;
+      }
+
+      init() {
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+
+        // Master destination that we can also feed into MediaStreamRecorder
+        this.audioDestinationNode = this.ctx.createMediaStreamDestination();
+
+        // Master Volume
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
+        this.masterGain.connect(this.audioDestinationNode);
+
+        // Train engine hum
+        this.filter = this.ctx.createBiquadFilter();
+        this.filter.type = 'lowpass';
+        this.filter.frequency.setValueAtTime(260, this.ctx.currentTime);
+        this.filter.connect(this.masterGain);
+
+        this.engineOsc = this.ctx.createOscillator();
+        this.engineOsc.type = 'sawtooth';
+        this.engineOsc.frequency.setValueAtTime(55, this.ctx.currentTime);
+
+        this.engineGain = this.ctx.createGain();
+        this.engineGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+
+        this.engineOsc.connect(this.engineGain);
+        this.engineGain.connect(this.filter);
+        this.engineOsc.start();
+
+        // Secondary electric motor hum (high whine)
+        this.motorOsc = this.ctx.createOscillator();
+        this.motorOsc.type = 'sine';
+        this.motorOsc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        this.motorGain = this.ctx.createGain();
+        this.motorGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+        this.motorOsc.connect(this.motorGain);
+        this.motorGain.connect(this.filter);
+        this.motorOsc.start();
+
+        this.startTrackClickClack();
+      }
+
+      setSpeed(speedRatio) {
+        if (!this.ctx) return;
+        const baseFreq = 45 + speedRatio * 40;
+        const motorFreq = 180 + speedRatio * 320;
+        this.engineOsc.frequency.setTargetAtTime(baseFreq, this.ctx.currentTime, 0.1);
+        this.motorOsc.frequency.setTargetAtTime(motorFreq, this.ctx.currentTime, 0.1);
+      }
+
+      startTrackClickClack() {
+        const playClack = () => {
+          if (this.enabled && this.ctx && this.ctx.state === 'running') {
+            this.triggerClack();
+          }
+          const delay = Math.max(220, 600 - (state.speed * 1.4));
+          this.clackTimer = setTimeout(playClack, delay);
+        };
+        playClack();
+      }
+
+      triggerClack() {
+        if (!this.ctx || !this.enabled) return;
+        const now = this.ctx.currentTime;
+        // Two quick pulses like real wheels on rail joints
+        for (let i = 0; i < 2; i++) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(120 + Math.random() * 40, now + i * 0.08);
+          gain.gain.setValueAtTime(0.08, now + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.06);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 0.07);
+        }
+      }
+
+      playStationChime() {
+        if (!this.ctx || !this.enabled) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+          gain.gain.setValueAtTime(0.18, now + idx * 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.16 + 0.8);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now + idx * 0.16);
+          osc.stop(now + idx * 0.16 + 0.9);
+        });
+      }
+
+      toggle(forceState) {
+        this.enabled = forceState !== undefined ? forceState : !this.enabled;
+        if (this.masterGain && this.ctx) {
+          this.masterGain.gain.setValueAtTime(this.enabled ? 0.3 : 0, this.ctx.currentTime);
+        }
+        return this.enabled;
+      }
+    }
+
+    const sound = new SubwayAudio();
+    window.addEventListener('click', () => { sound.init(); }, { once: true });
+    window.addEventListener('touchstart', () => { sound.init(); }, { once: true });
+
+    // -------------------------------------------------------------
+    // 2. State & Themes
+    // -------------------------------------------------------------
+    const THEMES = {
+      sunset: {
+        skyTop: '#100a26',
+        skyBottom: '#ff5e62',
+        sunColor: '#ff9966',
+        tunnelBg: '#090814',
+        trackColor: '#4338ca',
+        railColor: '#a5b4fc',
+        trainBody: '#f8fafc',
+        trainAccent: '#ff007f',
+        trainGlow: '#ff007f',
+        citySilhouette: '#1e1136',
+        starColor: '#ffd3b6',
+        lightColor: '#ffedd5',
+        wireColor: 'rgba(255, 150, 100, 0.35)'
+      },
+      cyberpunk: {
+        skyTop: '#030014',
+        skyBottom: '#190033',
+        sunColor: '#00f2fe',
+        tunnelBg: '#02000c',
+        trackColor: '#1e1b4b',
+        railColor: '#00f2fe',
+        trainBody: '#0f172a',
+        trainAccent: '#00f2fe',
+        trainGlow: '#00f2fe',
+        citySilhouette: '#0a001a',
+        starColor: '#00f2fe',
+        lightColor: '#ff007f',
+        wireColor: 'rgba(0, 242, 254, 0.4)'
+      },
+      subway: {
+        skyTop: '#0f172a',
+        skyBottom: '#1e293b',
+        sunColor: '#38bdf8',
+        tunnelBg: '#05070e',
+        trackColor: '#334155',
+        railColor: '#cbd5e1',
+        trainBody: '#e2e8f0',
+        trainAccent: '#3b82f6',
+        trainGlow: '#60a5fa',
+        citySilhouette: '#090d16',
+        starColor: '#94a3b8',
+        lightColor: '#fef08a',
+        wireColor: 'rgba(255, 255, 255, 0.25)'
+      },
+      matrix: {
+        skyTop: '#000800',
+        skyBottom: '#001a05',
+        sunColor: '#00ff66',
+        tunnelBg: '#000802',
+        trackColor: '#003311',
+        railColor: '#00ff66',
+        trainBody: '#021a08',
+        trainAccent: '#00ff66',
+        trainGlow: '#00ff66',
+        citySilhouette: '#001004',
+        starColor: '#33ff77',
+        lightColor: '#00ff66',
+        wireColor: 'rgba(0, 255, 102, 0.4)'
+      }
+    };
+
+    const STATIONS = [
+      "محطة التحرير - سنترال | Tahrir Central",
+      "محطة الأوبرا - برج المترو | Opera Tower",
+      "محطة مدينة المستقبل | Future City Station",
+      "محطة الكورنيش والساحل | Seaside Express",
+      "محطة النيون الرقمية | Cyber Neon Metro"
+    ];
+
+    const state = {
+      speed: 145,           // km/h
+      speedRatio: 1.0,
+      camera: 'chase',      // chase, driver, side, map
+      theme: 'sunset',
+      showSparks: true,
+      showMotionBlur: true,
+      targetLane: 1,        // 0: Left, 1: Center, 2: Right
+      currentLaneX: 0,      // smoothly interpolated
+      zDistance: 0,
+      recording: false,
+      recDuration: 10,      // seconds, 0 = manual
+      recStartTime: 0,
+      particles: [],
+      speedLines: [],
+      sparks: [],
+      pillars: [],
+      mapTrains: [
+        { line: '#00f2fe', progress: 0.1, speed: 0.001 },
+        { line: '#ff007f', progress: 0.4, speed: 0.0014 },
+        { line: '#ffb703', progress: 0.7, speed: 0.0009 },
+        { line: '#10b981', progress: 0.85, speed: 0.0012 }
+      ],
+      stationActive: false,
+      stationName: STATIONS[0],
+      stationTimer: 0
+    };
+
+    // -------------------------------------------------------------
+    // 3. Canvas & Initialization
+    // -------------------------------------------------------------
+    const canvas = document.getElementById('subwayCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasContainer = document.getElementById('canvasContainer');
+
+    function resizeCanvas() {
+      const rect = canvasContainer.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Generate initial pillars and scenery
+    for (let i = 0; i < 20; i++) {
+      state.pillars.push({
+        z: i * 80 + Math.random() * 20,
+        side: i % 2 === 0 ? -1 : 1,
+        type: Math.random() > 0.4 ? 'pillar' : 'sign'
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 4. Drawing & Animation Engine
+    // -------------------------------------------------------------
+    function updatePhysics(delta) {
+      state.speedRatio = state.speed / 140;
+      sound.setSpeed(state.speedRatio);
+
+      // Advance distance along track
+      state.zDistance += delta * 450 * state.speedRatio;
+
+      // Smooth lane transition
+      const targetX = (state.targetLane - 1) * 160;
+      state.currentLaneX += (targetX - state.currentLaneX) * 0.12;
+
+      // Update pillars
+      state.pillars.forEach(p => {
+        p.z -= delta * 450 * state.speedRatio;
+        if (p.z < 10) {
+          p.z += 1500;
+          p.side = Math.random() > 0.5 ? -1 : 1;
+        }
+      });
+
+      // Update sparks
+      if (state.showSparks && Math.random() < 0.3 * state.speedRatio) {
+        for (let i = 0; i < 3; i++) {
+          state.sparks.push({
+            x: state.currentLaneX + (Math.random() - 0.5) * 70,
+            y: 0,
+            z: 90 + Math.random() * 40,
+            vx: (Math.random() - 0.5) * 150,
+            vy: -Math.random() * 200 - 50,
+            vz: -100 - Math.random() * 150,
+            life: 1.0
+          });
+        }
+      }
+
+      state.sparks.forEach(s => {
+        s.x += s.vx * delta;
+        s.y += s.vy * delta;
+        s.z += s.vz * delta;
+        s.vy += 600 * delta; // gravity
+        s.life -= delta * 3.5;
+      });
+      state.sparks = state.sparks.filter(s => s.life > 0);
+
+      // Speed lines
+      if (state.showMotionBlur && Math.random() < 0.4) {
+        state.speedLines.push({
+          x: (Math.random() - 0.5) * 800,
+          y: (Math.random() - 0.5) * 400,
+          z: 800,
+          length: 50 + Math.random() * 120,
+          speed: 800 + Math.random() * 400
+        });
+      }
+
+      state.speedLines.forEach(l => {
+        l.z -= l.speed * delta * state.speedRatio;
+      });
+      state.speedLines = state.speedLines.filter(l => l.z > 20);
+
+      // Periodic station announcements
+      state.stationTimer += delta;
+      if (state.stationTimer > 18) {
+        state.stationTimer = 0;
+        triggerStationArrival();
+      }
+    }
+
+    function triggerStationArrival() {
+      const idx = Math.floor(Math.random() * STATIONS.length);
+      state.stationName = STATIONS[idx];
+      document.getElementById('stationName').textContent = state.stationName;
+      const hudStation = document.getElementById('hudStation');
+      hudStation.classList.add('active');
+      sound.playStationChime();
+      setTimeout(() => {
+        hudStation.classList.remove('active');
+      }, 5000);
+    }
+
+    // 3D Perspective Projection
+    function project(x, y, z, width, height) {
+      const fov = 350;
+      if (z <= 1) z = 1;
+      const scale = fov / z;
+      const projX = width / 2 + x * scale;
+      const projY = height * 0.56 + y * scale;
+      return { x: projX, y: projY, scale };
+    }
+
+    // Draw Main 3D Subway View
+    function render3DView(w, h) {
+      const theme = THEMES[state.theme];
+
+      // 1. Sky Gradient & Horizon
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.6);
+      skyGrad.addColorStop(0, theme.skyTop);
+      skyGrad.addColorStop(1, theme.skyBottom);
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Glowing Sun / Cyber Moon
+      ctx.save();
+      const sunGrad = ctx.createRadialGradient(w * 0.5, h * 0.45, 10, w * 0.5, h * 0.45, 120);
+      sunGrad.addColorStop(0, theme.sunColor);
+      sunGrad.addColorStop(0.3, theme.sunColor + '66');
+      sunGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(w * 0.5, h * 0.45, 120, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // City Skyline Silhouettes
+      ctx.fillStyle = theme.citySilhouette;
+      const numBuildings = 22;
+      const bWidth = w / (numBuildings - 2);
+      for (let i = 0; i < numBuildings; i++) {
+        const bHeight = 40 + Math.sin(i * 1.7) * 35 + ((i * 37) % 55);
+        const bx = i * bWidth - 20;
+        const by = h * 0.56 - bHeight;
+        ctx.fillRect(bx, by, bWidth + 2, bHeight);
+
+        // Window lights
+        if (i % 2 === 0) {
+          ctx.fillStyle = theme.lightColor + '88';
+          for (let wy = by + 6; wy < h * 0.56 - 6; wy += 12) {
+            ctx.fillRect(bx + 4, wy, 3, 4);
+            ctx.fillRect(bx + bWidth - 8, wy, 3, 4);
+          }
+          ctx.fillStyle = theme.citySilhouette;
+        }
+      }
+
+      // 2. Ground & Subway Tracks
+      const groundGrad = ctx.createLinearGradient(0, h * 0.56, 0, h);
+      groundGrad.addColorStop(0, theme.tunnelBg);
+      groundGrad.addColorStop(1, '#020306');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, h * 0.56, w, h * 0.44);
+
+      // Draw 3 Subway Track Beds (Left, Center, Right)
+      const lanes = [-160, 0, 160];
+      const maxZ = 1200;
+      const minZ = 40;
+
+      lanes.forEach((laneX) => {
+        // Track bed ballast
+        ctx.beginPath();
+        const p1 = project(laneX - 60, 120, maxZ, w, h);
+        const p2 = project(laneX + 60, 120, maxZ, w, h);
+        const p3 = project(laneX + 70, 120, minZ, w, h);
+        const p4 = project(laneX - 70, 120, minZ, w, h);
+
+        ctx.fillStyle = theme.trackColor + '55';
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.lineTo(p3.x, p3.y);
+        ctx.lineTo(p4.x, p4.y);
+        ctx.closePath();
+        ctx.fill();
+
+        // Steel Rails (Left & Right rail)
+        [-40, 40].forEach(rx => {
+          ctx.beginPath();
+          const rFar = project(laneX + rx, 115, maxZ, w, h);
+          const rNear = project(laneX + rx, 115, minZ, w, h);
+          ctx.strokeStyle = theme.railColor;
+          ctx.lineWidth = Math.max(1, (rNear.scale * 3));
+          ctx.moveTo(rFar.x, rFar.y);
+          ctx.lineTo(rNear.x, rNear.y);
+          ctx.stroke();
+
+          // Rail glow
+          ctx.strokeStyle = theme.trainGlow + '44';
+          ctx.lineWidth = Math.max(2, (rNear.scale * 6));
+          ctx.stroke();
+        });
+
+        // Moving Sleepers / Ties
+        const sleeperSpacing = 40;
+        const offset = state.zDistance % sleeperSpacing;
+        for (let z = minZ + offset; z < maxZ; z += sleeperSpacing) {
+          const s1 = project(laneX - 48, 118, z, w, h);
+          const s2 = project(laneX + 48, 118, z, w, h);
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+          ctx.lineWidth = Math.max(1, s1.scale * 4);
+          ctx.moveTo(s1.x, s1.y);
+          ctx.lineTo(s2.x, s2.y);
+          ctx.stroke();
+        }
+      });
+
+      // Overhead Catenary Power Wires
+      lanes.forEach(laneX => {
+        ctx.beginPath();
+        const wFar = project(laneX, -160, maxZ, w, h);
+        const wNear = project(laneX, -160, minZ, w, h);
+        ctx.strokeStyle = theme.wireColor;
+        ctx.lineWidth = Math.max(1, wNear.scale * 1.5);
+        ctx.moveTo(wFar.x, wFar.y);
+        ctx.lineTo(wNear.x, wNear.y);
+        ctx.stroke();
+      });
+
+      // Tunnel Arches & Pillars Passing by
+      state.pillars.forEach(p => {
+        if (p.z < minZ || p.z > maxZ) return;
+        const px = p.side * 280;
+        const topProj = project(px, -240, p.z, w, h);
+        const btmProj = project(px, 120, p.z, w, h);
+
+        ctx.fillStyle = theme.trackColor;
+        const pWidth = Math.max(3, topProj.scale * 24);
+        ctx.fillRect(topProj.x - pWidth / 2, topProj.y, pWidth, btmProj.y - topProj.y);
+
+        // Neon warning band on pillars
+        ctx.fillStyle = theme.trainAccent;
+        ctx.fillRect(topProj.x - pWidth / 2, btmProj.y - (btmProj.y - topProj.y) * 0.4, pWidth, 6 * topProj.scale);
+      });
+
+      // 3. Subway Train Rendering
+      renderSubwayTrain(w, h, theme);
+
+      // 4. Sparks & Speedlines
+      renderSparksAndFX(w, h, theme);
+    }
+
+    // Render Detailed 3D Subway Car
+    function renderSubwayTrain(w, h, theme) {
+      let trainZ = 160;
+      let trainY = 110;
+      let trainX = state.currentLaneX;
+
+      // Adjust for Camera modes
+      if (state.camera === 'driver') {
+        // Driver camera view: inside cockpit looking forward onto tracks
+        renderCockpitView(w, h, theme);
+        return;
+      } else if (state.camera === 'side') {
+        // Fast side angle
+        trainX = state.currentLaneX - 40;
+        trainZ = 130;
+      }
+
+      // Train Body Coordinates in 3D
+      const trainWidth = 84;
+      const trainHeight = 90;
+      const carLength = 260; // front to back
+
+      // Back of front car (closer to camera)
+      const bL = project(trainX - trainWidth / 2, trainY - trainHeight, trainZ, w, h);
+      const bR = project(trainX + trainWidth / 2, trainY - trainHeight, trainZ, w, h);
+      const bBL = project(trainX - trainWidth / 2, trainY, trainZ, w, h);
+      const bBR = project(trainX + trainWidth / 2, trainY, trainZ, w, h);
+
+      // Front of front car (facing away along tracks)
+      const fZ = trainZ + carLength;
+      const fL = project(trainX - trainWidth / 2, trainY - trainHeight, fZ, w, h);
+      const fR = project(trainX + trainWidth / 2, trainY - trainHeight, fZ, w, h);
+      const fBL = project(trainX - trainWidth / 2, trainY, fZ, w, h);
+      const fBR = project(trainX + trainWidth / 2, trainY, fZ, w, h);
+
+      // Volumetric Headlights beam casting onto the rails ahead
+      ctx.save();
+      const beamGrad = ctx.createRadialGradient(
+        (fBL.x + fBR.x) / 2, fBL.y, 10,
+        (fBL.x + fBR.x) / 2, fBL.y + 120, 300
+      );
+      beamGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+      beamGrad.addColorStop(0.3, theme.lightColor + '33');
+      beamGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = beamGrad;
+      ctx.beginPath();
+      ctx.moveTo(fBL.x - 10, fBL.y);
+      ctx.lineTo(fBR.x + 10, fBR.y);
+      const beamReach = project(trainX, 115, fZ + 550, w, h);
+      ctx.lineTo(beamReach.x + 180, beamReach.y);
+      ctx.lineTo(beamReach.x - 180, beamReach.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Top Roof
+      ctx.fillStyle = theme.trainBody;
+      ctx.beginPath();
+      ctx.moveTo(bL.x, bL.y);
+      ctx.lineTo(bR.x, bR.y);
+      ctx.lineTo(fR.x, fR.y);
+      ctx.lineTo(fL.x, fL.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Roof details (AC vents & Pantograph)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      const roofMid = project(trainX, trainY - trainHeight - 6, trainZ + 120, w, h);
+      ctx.fillRect(roofMid.x - 14 * roofMid.scale, roofMid.y, 28 * roofMid.scale, 8 * roofMid.scale);
+
+      // Left & Right Flanks (Sides)
+      // Left flank
+      ctx.fillStyle = '#0a0d14';
+      ctx.beginPath();
+      ctx.moveTo(bL.x, bL.y);
+      ctx.lineTo(fL.x, fL.y);
+      ctx.lineTo(fBL.x, fBL.y);
+      ctx.lineTo(bBL.x, bBL.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Right flank
+      ctx.fillStyle = '#1e2433';
+      ctx.beginPath();
+      ctx.moveTo(bR.x, bR.y);
+      ctx.lineTo(fR.x, fR.y);
+      ctx.lineTo(fBR.x, fBR.y);
+      ctx.lineTo(bBR.x, bBR.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Flank illuminated Windows
+      for (let zStep = trainZ + 40; zStep < fZ - 30; zStep += 65) {
+        const w1 = project(trainX + trainWidth / 2 + 0.5, trainY - trainHeight * 0.75, zStep, w, h);
+        const w2 = project(trainX + trainWidth / 2 + 0.5, trainY - trainHeight * 0.75, zStep + 45, w, h);
+        const w3 = project(trainX + trainWidth / 2 + 0.5, trainY - trainHeight * 0.35, zStep + 45, w, h);
+        const w4 = project(trainX + trainWidth / 2 + 0.5, trainY - trainHeight * 0.35, zStep, w, h);
+
+        ctx.fillStyle = theme.lightColor + 'bb';
+        ctx.beginPath();
+        ctx.moveTo(w1.x, w1.y);
+        ctx.lineTo(w2.x, w2.y);
+        ctx.lineTo(w3.x, w3.y);
+        ctx.lineTo(w4.x, w4.y);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Back Face of the Subway Car (facing the camera)
+      const backGrad = ctx.createLinearGradient(bL.x, bL.y, bBL.x, bBL.y);
+      backGrad.addColorStop(0, '#1c2230');
+      backGrad.addColorStop(0.5, '#0f1420');
+      backGrad.addColorStop(1, '#05070d');
+      ctx.fillStyle = backGrad;
+      ctx.beginPath();
+      ctx.moveTo(bL.x, bL.y);
+      ctx.lineTo(bR.x, bR.y);
+      ctx.lineTo(bBR.x, bBR.y);
+      ctx.lineTo(bBL.x, bBL.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Subway Body Decal / Vibrant Accent Line
+      ctx.strokeStyle = theme.trainAccent;
+      ctx.lineWidth = Math.max(3, bL.scale * 12);
+      ctx.beginPath();
+      ctx.moveTo(bBL.x, bBL.y - 25 * bL.scale);
+      ctx.lineTo(bBR.x, bBR.y - 25 * bL.scale);
+      ctx.stroke();
+
+      // Rear Red Subway Tail Lights
+      [-trainWidth * 0.35, trainWidth * 0.35].forEach(lx => {
+        const lightProj = project(trainX + lx, trainY - 25, trainZ, w, h);
+        ctx.fillStyle = '#ff1144';
+        ctx.shadowColor = '#ff1144';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(lightProj.x, lightProj.y, 6 * lightProj.scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset
+      });
+
+      // Rear Door Window
+      const winTop = project(trainX, trainY - trainHeight * 0.78, trainZ, w, h);
+      const winBtm = project(trainX, trainY - trainHeight * 0.38, trainZ, w, h);
+      const winW = 28 * winTop.scale;
+      ctx.fillStyle = '#102236';
+      ctx.fillRect(winTop.x - winW / 2, winTop.y, winW, winBtm.y - winTop.y);
+      ctx.strokeStyle = theme.trainAccent;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(winTop.x - winW / 2, winTop.y, winW, winBtm.y - winTop.y);
+    }
+
+    // Cockpit Driver Perspective
+    function renderCockpitView(w, h, theme) {
+      // Windshield frame overlay
+      ctx.fillStyle = '#080c14';
+      // Left pillar
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(w * 0.22, 0);
+      ctx.lineTo(w * 0.12, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Right pillar
+      ctx.beginPath();
+      ctx.moveTo(w, 0);
+      ctx.lineTo(w * 0.78, 0);
+      ctx.lineTo(w * 0.88, h);
+      ctx.lineTo(w, h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Dashboard
+      ctx.fillStyle = '#04060a';
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.76);
+      ctx.lineTo(w, h * 0.76);
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Glowing dashboard controls
+      ctx.strokeStyle = theme.trainAccent;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(w * 0.3, h * 0.82, w * 0.4, h * 0.12);
+
+      ctx.fillStyle = theme.trainAccent;
+      ctx.font = 'bold 14px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`SUBWAY SPEED: ${Math.round(state.speed)} KM/H [AUTO-PILOT ACTIVE]`, w * 0.5, h * 0.89);
+    }
+
+    // Render Subway Sparks and High-Speed Streaks
+    function renderSparksAndFX(w, h, theme) {
+      // Sparks
+      state.sparks.forEach(s => {
+        const p = project(s.x, 118 + s.y * 0.3, s.z, w, h);
+        ctx.fillStyle = theme.trainAccent;
+        ctx.shadowColor = theme.trainGlow;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(1, p.scale * 4 * s.life), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      // Speed lines
+      if (state.showMotionBlur) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        state.speedLines.forEach(l => {
+          const pStart = project(l.x, l.y, l.z, w, h);
+          const pEnd = project(l.x, l.y, l.z + l.length, w, h);
+          ctx.lineWidth = Math.max(1, pStart.scale * 1.5);
+          ctx.beginPath();
+          ctx.moveTo(pStart.x, pStart.y);
+          ctx.lineTo(pEnd.x, pEnd.y);
+          ctx.stroke();
+        });
+      }
+    }
+
+    // Alternative Mode: Interactive Subway Transit Map
+    function renderTransitMapView(w, h) {
+      ctx.fillStyle = '#0a0d18';
+      ctx.fillRect(0, 0, w, h);
+
+      // Grid background
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < w; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Map Lines
+      const lines = [
+        { name: "Red Line • الخط الأحمر", color: "#ff0055", points: [[0.1, 0.2], [0.35, 0.5], [0.65, 0.5], [0.9, 0.8]] },
+        { name: "Blue Line • الخط الأزرق", color: "#00d2ff", points: [[0.15, 0.85], [0.35, 0.5], [0.5, 0.25], [0.85, 0.2]] },
+        { name: "Gold Line • الخط الذهبي", color: "#f59e0b", points: [[0.5, 0.85], [0.65, 0.5], [0.8, 0.35], [0.95, 0.35]] }
+      ];
+
+      lines.forEach((l, idx) => {
+        ctx.strokeStyle = l.color;
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = l.color;
+        ctx.shadowBlur = 12;
+
+        ctx.beginPath();
+        l.points.forEach((pt, pIdx) => {
+          const px = pt[0] * w;
+          const py = pt[1] * h;
+          if (pIdx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Station Stops
+        l.points.forEach(pt => {
+          const px = pt[0] * w;
+          const py = pt[1] * h;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+
+        // Animated Trains gliding along the line
+        const trainObj = state.mapTrains[idx];
+        if (trainObj) {
+          trainObj.progress = (trainObj.progress + trainObj.speed * state.speedRatio) % 1;
+          const segCount = l.points.length - 1;
+          const scaledProg = trainObj.progress * segCount;
+          const currSeg = Math.floor(scaledProg);
+          const t = scaledProg - currSeg;
+
+          const pStart = l.points[currSeg];
+          const pEnd = l.points[Math.min(currSeg + 1, segCount)];
+          if (pStart && pEnd) {
+            const tx = (pStart[0] + (pEnd[0] - pStart[0]) * t) * w;
+            const ty = (pStart[1] + (pEnd[1] - pStart[1]) * t) * h;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = l.color;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(tx, ty, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+      });
+
+      // HUD Title on Map
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px "Cairo", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('خريطة شبكة قطارات ومترو الأنفاق التفاعلية', w - 24, 36);
+      ctx.fillStyle = 'var(--text-muted)';
+      ctx.font = '12px "JetBrains Mono", monospace';
+      ctx.fillText('LIVE TRANSIT TELEMETRY • ACTIVE UNITS: 3', w - 24, 56);
+    }
+
+    // Main Render Loop
+    let lastTime = performance.now();
+    function animate(now) {
+      const delta = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      updatePhysics(delta);
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (state.camera === 'map') {
+        renderTransitMapView(w, h);
+      } else {
+        render3DView(w, h);
+      }
+
+      // Check Recording countdown if active
+      if (state.recording && state.recDuration > 0) {
+        const elapsed = (performance.now() - state.recStartTime) / 1000;
+        const remaining = Math.max(0, state.recDuration - elapsed);
+        document.getElementById('recCountdown').textContent = `${remaining.toFixed(1)}s`;
+        if (remaining <= 0) {
+          stopVideoRecording();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    // -------------------------------------------------------------
+    // 5. Video Recording & Export Engine (MediaRecorder)
+    // -------------------------------------------------------------
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    function startVideoRecording() {
+      if (state.recording) return;
+
+      // Ensure Audio context is awake
+      sound.init();
+
+      // Capture 60 FPS video stream directly from canvas
+      const canvasStream = canvas.captureStream(60);
+
+      // Add audio track if sound system is initialized
+      if (sound.ctx && sound.audioDestinationNode) {
+        const audioTracks = sound.audioDestinationNode.stream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          canvasStream.addTrack(audioTracks[0]);
+        }
+      }
+
+      // Determine best supported MIME type
+      let mimeType = 'video/webm;codecs=vp9,opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm';
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/mp4';
+      }
+
+      try {
+        mediaRecorder = new MediaRecorder(canvasStream, {
+          mimeType: mimeType,
+          videoBitsPerSecond: 6000000 // 6 Mbps high quality
+        });
+      } catch (e) {
+        // Fallback without bitrate constraint
+        mediaRecorder = new MediaRecorder(canvasStream);
+      }
+
+      recordedChunks = [];
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
+        const videoURL = URL.createObjectURL(blob);
+
+        // Populate Preview Modal
+        const previewEl = document.getElementById('modalVideoPreview');
+        previewEl.src = videoURL;
+        previewEl.load();
+        previewEl.play();
+
+        const downloadBtn = document.getElementById('downloadVideoBtn');
+        downloadBtn.href = videoURL;
+        downloadBtn.download = `subway-animation-${Date.now()}.webm`;
+
+        document.getElementById('videoModal').classList.add('active');
+        state.recording = false;
+        updateRecordUI(false);
+      };
+
+      mediaRecorder.start(250); // collect chunks every 250ms
+      state.recording = true;
+      state.recStartTime = performance.now();
+      updateRecordUI(true);
+    }
+
+    function stopVideoRecording() {
+      if (!state.recording || !mediaRecorder) return;
+      if (mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    }
+
+    function updateRecordUI(isRecording) {
+      const recBtn = document.getElementById('mainRecordBtn');
+      const recBtnText = document.getElementById('recordBtnText');
+      const recIndicator = document.getElementById('hudRecIndicator');
+
+      if (isRecording) {
+        recBtn.classList.add('recording');
+        recBtnText.textContent = '⏹️ جارٍ التسجيل... (اضغط للإيقاف)';
+        recIndicator.style.display = 'inline-flex';
+      } else {
+        recBtn.classList.remove('recording');
+        recBtnText.textContent = state.recDuration > 0 ? `تسجيل فيديو (${state.recDuration} ثوانٍ)` : 'تسجيل فيديو (يدوي)';
+        recIndicator.style.display = 'none';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 6. UI Controls & Interactions
+    // -------------------------------------------------------------
+    // Record Button
+    const mainRecordBtn = document.getElementById('mainRecordBtn');
+    mainRecordBtn.addEventListener('click', () => {
+      if (state.recording) {
+        stopVideoRecording();
+      } else {
+        startVideoRecording();
+      }
+    });
+
+    document.getElementById('exportQuickVideoBtn').addEventListener('click', () => {
+      if (state.recording) {
+        stopVideoRecording();
+      } else {
+        startVideoRecording();
+      }
+    });
+
+    // Close Modal
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+      document.getElementById('videoModal').classList.remove('active');
+      const previewEl = document.getElementById('modalVideoPreview');
+      previewEl.pause();
+      previewEl.src = '';
+    });
+
+    // Audio Toggle
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    toggleAudioBtn.addEventListener('click', () => {
+      sound.init();
+      const isEnabled = sound.toggle();
+      toggleAudioBtn.querySelector('.btn-label').textContent = isEnabled ? 'الصوت: مفعّل' : 'الصوت: مكتوم';
+      toggleAudioBtn.style.opacity = isEnabled ? '1' : '0.6';
+    });
+
+    // Aspect Ratio Buttons
+    document.querySelectorAll('[data-ratio]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const ratio = btn.dataset.ratio;
+        canvasContainer.className = `canvas-container ratio-${ratio}`;
+        setTimeout(resizeCanvas, 150);
+      });
+    });
+
+    // Duration Buttons
+    document.querySelectorAll('[data-duration]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-duration]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.recDuration = parseInt(btn.dataset.duration, 10);
+        updateRecordUI(state.recording);
+      });
+    });
+
+    // Camera Mode Buttons
+    document.querySelectorAll('[data-camera]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-camera]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.camera = btn.dataset.camera;
+      });
+    });
+
+    // Theme Buttons
+    document.querySelectorAll('[data-theme]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-theme]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.theme = btn.dataset.theme;
+      });
+    });
+
+    // Speed Slider
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValueText = document.getElementById('speedValueText');
+    const hudSpeed = document.getElementById('hudSpeed');
+    speedSlider.addEventListener('input', (e) => {
+      state.speed = parseInt(e.target.value, 10);
+      speedValueText.textContent = `${state.speed} كم/س`;
+      hudSpeed.textContent = state.speed;
+    });
+
+    // Lane Switching (Track Control)
+    function switchLane(dir) {
+      state.targetLane = Math.max(0, Math.min(2, state.targetLane + dir));
+      const laneNames = ["مسار اليسار [يسار]", "مسار الوسط [وسط]", "مسار اليمين [يمين]"];
+      document.getElementById('hudLane').textContent = laneNames[state.targetLane];
+    }
+
+    document.getElementById('laneLeftBtn').addEventListener('click', () => switchLane(-1));
+    document.getElementById('laneRightBtn').addEventListener('click', () => switchLane(1));
+
+    // Keyboard support (Arrow keys / A & D)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        switchLane(-1);
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        switchLane(1);
+      } else if (e.key === ' ' || e.key === 'r' || e.key === 'R') {
+        if (!state.recording) startVideoRecording();
+        else stopVideoRecording();
+      }
+    });
+
+    // Swipe gestures on canvas
+    let touchStartX = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', (e) => {
+      const diffX = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(diffX) > 40) {
+        if (diffX > 0) switchLane(1);
+        else switchLane(-1);
+      }
+    }, { passive: true });
+
+    // Sparks and Blur Toggles
+    const toggleSparksBtn = document.getElementById('toggleSparksBtn');
+    toggleSparksBtn.addEventListener('click', () => {
+      state.showSparks = !state.showSparks;
+      toggleSparksBtn.classList.toggle('active', state.showSparks);
+    });
+
+    const toggleMotionBlurBtn = document.getElementById('toggleMotionBlurBtn');
+    toggleMotionBlurBtn.addEventListener('click', () => {
+      state.showMotionBlur = !state.showMotionBlur;
+      toggleMotionBlurBtn.classList.toggle('active', state.showMotionBlur);
+    });
+
+    // Station trigger
+    document.getElementById('triggerStationBtn').addEventListener('click', () => {
+      triggerStationArrival();
+    });
+
+  </script>
+</body>
+</html>
